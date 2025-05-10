@@ -1,39 +1,52 @@
 "use strict";
+import lib2d from "../../common/libs/lib2d.mjs";
 import libSprite from "../../common/libs/libSpriteflappy.mjs";
-import { GameProps } from "./FlappyBird.mjs";
+import { GameProps, EGameStatus } from "./FlappyBird.mjs";
 
 class THero extends libSprite.TSprite {
   #spi;
-  #gravity;
-  #velocity;
+  #gravity = 9.81 / 100;
+  #velocity = 0;
+  #sineWave;
   constructor(aSpriteCanvas, aSpriteInfo, aPosition) {
     super(aSpriteCanvas, aSpriteInfo, aPosition);
-    this.animateSpeed = 60;
-    this.#gravity = 9.81 / 100;
-    this.#velocity = 0;
     this.#spi = aSpriteInfo;
+    this.animateSpeed = 10;
+    this.isDead = false;
+    this.rotation = 0;
+    this.#sineWave = new lib2d.TSineWave(1.5, 2);
   }
+
   draw() {
     super.draw();
-    //this.#spi = aSpriteInfo;
   }
+
   update() {
-    const hitGround = GameProps.ground.posY;
+    const groundY = GameProps.ground.posY;
     const bottomY = this.posY + this.#spi.height;
-    if (bottomY < hitGround) {
+    if (bottomY < groundY) {
       if (this.posY < 0) {
         this.posY = 0;
         this.#velocity = 0;
       }
       this.translate(0, this.#velocity);
+      this.rotation = this.#velocity* 10;
       this.#velocity += this.#gravity;
     } else {
-      this.posY = hitGround - this.#spi.height;
+      this.posY = groundY - this.#spi.height;
+      GameProps.status = EGameStatus.gameOver;
+      this.animateSpeed = 0;
     }
   }
 
   flap() {
     this.#velocity = -3;
   }
+
+  updateIdle(){
+    this.translate(0, this.#sineWave.value);
+  }
+
 }
+
 export default THero;

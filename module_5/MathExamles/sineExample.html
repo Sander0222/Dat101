@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <title>Sine Example</title>
+    <style>
+      .prevent-select {
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10 and IE 11 */
+        user-select: none; /* Standard syntax */
+      }
+    </style>
+    <script type="module" src="./sineExample.mjs" defer></script>
+  </head>
+  <body class="prevent-select">
+    <canvas id="cvs" width="720" height="512" style="background-color: antiquewhite"></canvas>
+    <div style="max-width: 250px">
+      <fieldset>
+        <legend>Options</legend>
+        <p>
+          <input type="range" id="angleSlider" min="0" max="360" value="90" />
+          <label id="angleLabel" for="angleSlider">Angle: 90</label>
+          <br />
+          <input type="range" id="originXSlider" min="0" max="720" value="144" />
+          <label id="originXLabel" for="originXSlider">Origin X</label>
+          <br />
+          <input type="range" id="radiusSlider" min="0" max="512" value="100" />
+          <label id="radiusLabel" for="radiusSlider">Radius: 100</label>
+        </p>
+      </fieldset>
+      <fieldset>
+        <legend>Animation</legend>
+        <p>
+          <input type="checkbox" id="animateAmplitude" />
+          <label for="animateAmplitude">Amplitude</label>
+          <input type="checkbox" id="animateFrequency" />
+          <label for="animateFrequency">Frequency</label>
+        </p>
+        <p>
+          <button id="startButton">Start</button>
+          <button id="stopButton">Stop</button>
+        </p>
+      </fieldset>
+    </div>
+  </body>
+</html>

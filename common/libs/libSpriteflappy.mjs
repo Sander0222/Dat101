@@ -1,5 +1,5 @@
 "use strict";
-import lib2d from "./lib2d.mjs";
+import lib2D from "./lib2d.mjs";
 /**
  * @library libSprite
  * @description A library for classes that manage sprite animations.
@@ -9,11 +9,15 @@ class TSpriteCanvas {
   #cvs;
   #ctx;
   #img;
+  #boundingRect;
+  #drawText;
 
   constructor(aCanvas) {
     this.#cvs = aCanvas;
     this.#ctx = aCanvas.getContext("2d");
     this.#img = new Image();
+    this.#boundingRect = this.#cvs.getBoundingClientRect();
+    this.mousePos = new lib2D.TPosition(0, 0);
   }
 
   loadSpriteSheet(aFileName, aLoadedFinal) {
@@ -21,7 +25,7 @@ class TSpriteCanvas {
     this.#img.src = aFileName;
   }
 
-  drawSprite(aSpriteInfo, aDx = 0, aDy = 0, aIndex = 0) {
+  drawSprite(aSpriteInfo, aDx = 0, aDy = 0, aIndex = 0, aRot = 0) {
     let index = aIndex;
     const sx = aSpriteInfo.x + index * aSpriteInfo.width;
     const sy = aSpriteInfo.y;
@@ -31,34 +35,66 @@ class TSpriteCanvas {
     const dy = aDy;
     const dw = sw;
     const dh = sh;
-    this.#ctx.drawImage(this.#img, sx, sy, sw, sh, dx, dy, dw, dh);
+    if(aRot !== 0){
+      //Hvis vi har rotasjon må vi flytte mitten av destinasjonen til 0,0
+      const cx = dx + dw / 2;
+      const cy = dy + dh / 2;
+      const rad = aRot * Math.PI / 180;
+      this.#ctx.translate(cx, cy);
+      this.#ctx.rotate(rad);
+      this.#ctx.drawImage(this.#img, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh);
+      this.#ctx.rotate(-rad);
+      this.#ctx.translate(-cx, -cy);
+    }else{
+      this.#ctx.drawImage(this.#img, sx, sy, sw, sh, dx, dy, dw, dh);
+    }
   }
-
+ drawText(aText, aPos){
+  this.#ctx.font = "20px Arial";
+  this.#ctx.fillStyle= "black"; 
+  this.#ctx.fillText(aText, aPos.x, aPos.y); 
+ }
   clearCanvas() {
     this.#ctx.clearRect(0, 0, this.#cvs.width, this.#cvs.height);
   }
+
+  addEventListener(aType, aListener){
+    this.#cvs.addEventListener(aType, aListener);
+  }
+
+  getMousePos(aEvent){
+    this.mousePos.x = aEvent.clientX - this.#boundingRect.left;
+    this.mousePos.y = aEvent.clientY - this.#boundingRect.top;
+    return this.mousePos;
+  }
+
+  get style(){
+    return this.#cvs.style;
+  }
+
 } // End of TSpriteCanvas class
 
 /* 
- Lag en klasse TSprite med en konstruktør som tar inn et TSpriteCanvas-objekt og et spriteInfo-objekt.
+ Utvid konstruktøren til å ta inn et punkt for destinasjon til sprite.
 */
 
 class TSprite {
-  // spcvs, spi
   #spcvs;
   #spi;
   #pos;
   #index;
   #speedIndex;
-
   constructor(aSpriteCanvas, aSpriteInfo, aPosition) {
     this.#spcvs = aSpriteCanvas;
     this.#spi = aSpriteInfo;
-    this.#pos = aPosition.clone(); // vi trenger en kopi av posisjon
+    this.#pos = aPosition.clone(); //Vi trenger en kopi av posisjonen
     this.#index = 0;
-    this.#speedIndex = 0.0;
     this.animateSpeed = 0;
+    this.#speedIndex = 0;
+    this.boundingBox = new lib2D.TRectangle(this.#pos.x, this.#pos.y, this.#spi.width, this.#spi.height);
+    this.rotation = 0;
   }
+
   draw() {
     if (this.animateSpeed > 0) {
       this.#speedIndex += this.animateSpeed / 100;
@@ -70,33 +106,66 @@ class TSprite {
         }
       }
     }
-    this.#spcvs.drawSprite(this.#spi, this.#pos.x, this.#pos.y, this.#index);
+    this.#spcvs.drawSprite(this.#spi, this.#pos.x, this.#pos.y, this.#index, this.rotation);
   }
-
 
   translate(aDx, aDy) {
     this.#pos.x += aDx;
     this.#pos.y += aDy;
+    this.boundingBox.x += aDx;
+    this.boundingBox.y += aDy;
   }
+
   get posX() {
     return this.#pos.x;
   }
+
   get posY() {
     return this.#pos.y;
   }
+
   set posX(aX) {
-    return (this.#pos.x = aX);
+    this.#pos.x = aX;
+    this.boundingBox.x = aX;
   }
+get left(){
+  return this.#pos.x;
+}
+get right(){
+  return this.#pos.x + this.#spi.width; 
+}
   set posY(aY) {
-    return (this.#pos.y = aY);
+    this.#pos.y = aY;
+    this.boundingBox.y = aY;
   }
+
   setPos(aX, aY) {
     this.#pos.x = aX;
     this.#pos.y = aY;
+    this.boundingBox.x = aX;
+    this.boundingBox.y = aY;
   }
-  set index(aIndex) {
+
+  getPos(){
+    return this.#pos;
+  }
+
+  get index() {
+    return this.#index;
+  }
+  
+  set index(aIndex){
     this.#index = aIndex;
   }
+
+  hasCollided(aSprite){
+    return this.boundingBox.isInsideRect(aSprite.boundingBox);
+  }
+
+  getCenter(){
+    return this.boundingBox.center;
+  }
+
 } //End of TSprite class
 
 export default {
