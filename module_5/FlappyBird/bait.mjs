@@ -1,6 +1,6 @@
 "use strict";
 import lib2d from "../../common/libs/lib2d.mjs";
-import libSprite from "../../common/libs/libSpriteflappy.mjs";
+import libSprite from "../../common/libs/libSprite.mjs";
 import { GameProps, EGameStatus } from "./FlappyBird.mjs";
 
 export class TBait extends libSprite.TSprite {
@@ -9,8 +9,10 @@ export class TBait extends libSprite.TSprite {
   constructor(aSpriteCanvas, aSpriteInfo, aPosition) {
     super(aSpriteCanvas, aSpriteInfo, aPosition);
     this.animateSpeed = 35;
+    
     //Genere tilfeldig hastighet mellom 0.5 og 1.5 med step på 0.1
     this.#speed = Math.ceil(Math.random() * 10) / 10 + 0.5;
+
     //Generer en tilfeldig amplitude mellom 1 og 3
     const amplitude = Math.ceil(Math.random() * 3);
     this.#sineWave = new lib2d.TSineWave(amplitude, 1);
